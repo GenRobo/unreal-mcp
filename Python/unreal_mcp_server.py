@@ -261,7 +261,6 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
 # Initialize server
 mcp = FastMCP(
     "UnrealMCP",
-    description="Unreal Engine integration via Model Context Protocol",
     lifespan=server_lifespan
 )
 
@@ -271,13 +270,15 @@ from tools.blueprint_tools import register_blueprint_tools
 from tools.node_tools import register_blueprint_node_tools
 from tools.project_tools import register_project_tools
 from tools.umg_tools import register_umg_tools
+from tools.gaussian_splat_tools import register_gaussian_splat_tools
 
 # Register tools
 register_editor_tools(mcp)
 register_blueprint_tools(mcp)
 register_blueprint_node_tools(mcp)
 register_project_tools(mcp)
-register_umg_tools(mcp)  
+register_umg_tools(mcp)
+register_gaussian_splat_tools(mcp)  
 
 @mcp.prompt()
 def info():
@@ -335,6 +336,17 @@ def info():
     ## Project Tools
     - `create_input_mapping(action_name, key, input_type)` - Create input mappings
     
+    ## Gaussian Splat / SOG Tools
+    - `get_splat_components()` - Get all splat components in the current level
+    - `get_splat_component_info(actor_name)` - Get detailed info about a splat component
+    - `get_splat_asset_info(asset_name)` - Get asset metadata (bounds, textures, SOG info)
+    - `list_splat_assets()` - List all splat assets in the project
+    - `get_sog_metadata(asset_name)` - Get SOG decode metadata (mins/maxs, codebooks)
+    - `get_sog_codebook(asset_name, codebook_type)` - Get codebook values (scales/sh0/shn)
+    - `decode_splat_positions(asset_name, indices)` - Get decode parameters for positions
+    - `sample_splat_positions(asset_name, count)` - Sample splat positions from an asset
+    - `get_splat_render_stats()` - Get render statistics for all splat components
+    
     ## Best Practices
     
     ### UMG Widget Development
@@ -373,5 +385,8 @@ def info():
 
 # Run the server
 if __name__ == "__main__":
-    logger.info("Starting MCP server with stdio transport")
-    mcp.run(transport='stdio') 
+    import sys
+    # Use SSE for SSH remotes, stdio otherwise
+    transport = 'sse' if '--sse' in sys.argv else 'stdio'
+    logger.info(f"Starting MCP server with {transport} transport")
+    mcp.run(transport=transport) 
