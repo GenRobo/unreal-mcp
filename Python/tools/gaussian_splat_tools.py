@@ -324,3 +324,166 @@ def register_gaussian_splat_tools(mcp: FastMCP):
         except Exception as e:
             logger.error(f"Error getting render stats: {e}")
             return {"error": str(e)}
+
+    # ========= Diagnostic Tools =========
+
+    @mcp.tool()
+    def sample_scale_texture(
+        ctx: Context,
+        asset_name: str,
+        count: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Sample raw RGB values from the SOG scale texture for debugging.
+        
+        Args:
+            asset_name: Name of the SOG asset
+            count: Number of samples to return (1-100, default 10)
+            
+        Returns:
+            Dict with samples array containing raw texture RGB values (0-1 float)
+        """
+        from unreal_mcp_server import get_unreal_connection
+        
+        try:
+            unreal = get_unreal_connection()
+            if not unreal:
+                return {"error": "Not connected to Unreal Engine"}
+            
+            response = unreal.send_command("sample_scale_texture", {
+                "asset_name": asset_name,
+                "count": min(max(count, 1), 100)
+            })
+            
+            if not response:
+                return {"error": "No response"}
+            
+            return response.get("result", response)
+            
+        except Exception as e:
+            logger.error(f"Error sampling scale texture: {e}")
+            return {"error": str(e)}
+
+    @mcp.tool()
+    def decode_splat_scales(
+        ctx: Context,
+        asset_name: str,
+        indices: List[int]
+    ) -> Dict[str, Any]:
+        """
+        Decode scale values for specific splat indices with full diagnostic info.
+        
+        Shows the complete decode pipeline:
+        - Raw texture RGB values
+        - Codebook indices
+        - Log-space values from codebook
+        - Linear scales (cm) after exp()
+        - Scale ratios (to detect isotropic splats)
+        
+        Args:
+            asset_name: Name of the SOG asset
+            indices: List of splat indices to decode (e.g., [0, 1, 2, 100, 1000])
+            
+        Returns:
+            Dict with decoded_scales array containing full decode details for each index
+        """
+        from unreal_mcp_server import get_unreal_connection
+        
+        try:
+            unreal = get_unreal_connection()
+            if not unreal:
+                return {"error": "Not connected to Unreal Engine"}
+            
+            response = unreal.send_command("decode_splat_scales", {
+                "asset_name": asset_name,
+                "indices": indices
+            })
+            
+            if not response:
+                return {"error": "No response"}
+            
+            return response.get("result", response)
+            
+        except Exception as e:
+            logger.error(f"Error decoding splat scales: {e}")
+            return {"error": str(e)}
+
+    @mcp.tool()
+    def sample_color_texture(
+        ctx: Context,
+        asset_name: str,
+        count: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Sample raw RGBA values from the SOG SH0/color texture for debugging.
+        
+        Args:
+            asset_name: Name of the SOG asset
+            count: Number of samples to return (1-100, default 10)
+            
+        Returns:
+            Dict with samples array containing raw texture RGBA values (0-1 float)
+        """
+        from unreal_mcp_server import get_unreal_connection
+        
+        try:
+            unreal = get_unreal_connection()
+            if not unreal:
+                return {"error": "Not connected to Unreal Engine"}
+            
+            response = unreal.send_command("sample_color_texture", {
+                "asset_name": asset_name,
+                "count": min(max(count, 1), 100)
+            })
+            
+            if not response:
+                return {"error": "No response"}
+            
+            return response.get("result", response)
+            
+        except Exception as e:
+            logger.error(f"Error sampling color texture: {e}")
+            return {"error": str(e)}
+
+    @mcp.tool()
+    def decode_splat_colors(
+        ctx: Context,
+        asset_name: str,
+        indices: List[int]
+    ) -> Dict[str, Any]:
+        """
+        Decode color values for specific splat indices with full diagnostic info.
+        
+        Shows the complete decode pipeline:
+        - Raw texture RGBA values
+        - Codebook indices
+        - Codebook values (before SH_C0)
+        - Final decoded color (0.5 + codebook * SH_C0)
+        
+        Args:
+            asset_name: Name of the SOG asset
+            indices: List of splat indices to decode (e.g., [0, 1, 2, 100, 1000])
+            
+        Returns:
+            Dict with decoded_colors array containing full decode details for each index
+        """
+        from unreal_mcp_server import get_unreal_connection
+        
+        try:
+            unreal = get_unreal_connection()
+            if not unreal:
+                return {"error": "Not connected to Unreal Engine"}
+            
+            response = unreal.send_command("decode_splat_colors", {
+                "asset_name": asset_name,
+                "indices": indices
+            })
+            
+            if not response:
+                return {"error": "No response"}
+            
+            return response.get("result", response)
+            
+        except Exception as e:
+            logger.error(f"Error decoding splat colors: {e}")
+            return {"error": str(e)}
